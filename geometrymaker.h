@@ -283,5 +283,81 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 	idxIter[2] = 2;
 }
 
+template<typename VtxOutIter, typename IdxOutIter>
+void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter) 
+{
+	using namespace std;
+
+	float phi = (1 + sqrt(5.0)) / 2.0;
+
+	Cvec3f *points = new Cvec3f[12];
+
+	points[0] = Cvec3f(-1, phi, 0);		//Top-left
+	points[1] = Cvec3f(1, phi, 0);		//Top-right
+	points[2] = Cvec3f(-1, -phi, 0);		//Bottom-left
+	points[3] = Cvec3f(1, -phi, 0);		//Bottom-right
+	
+	points[4] = Cvec3f(0, 1, phi);		//Top-front
+	points[5] = Cvec3f(0, 1, -phi);		//Top-back
+	points[6] = Cvec3f(0, -1, phi);		//Bottom-front
+	points[7] = Cvec3f(0, -1, -phi);		//Bottom-back
+
+	points[8] = Cvec3f(-phi, 0, 1);		//Front-left
+	points[9] = Cvec3f(phi, 0, 1);		//Front-right 
+	points[10] = Cvec3f(-phi, 0, -1);	//Back-left
+	points[11] = Cvec3f(phi, 0, -1);		//Back-right
+	
+
+	//Load all points into vtxIter
+	for (int i = 0; i < 12; i++)
+	{
+		float x = points[i][0];
+		float y = points[i][1];
+		float z = points[i][2];
+
+		Cvec3f n(x, y, z);
+		Cvec3f t(-x, y, 0);
+		Cvec3f b = cross(n, t);
+
+		*vtxIter = GenericVertex(
+			x, y, z,
+			n[0], n[1], n[2],
+			1.0/i, 1.0/2*i,
+			t[0], t[1], t[2],
+			b[0], b[1], b[2]);
+		++vtxIter;
+	}
+
+	int temp[] = {	0,10,8, //Top
+						0,8,4,
+						0,4,1,
+						0,1,5,
+						0,5,10,
+
+						8,10,2, //Middle
+						8,2,6,
+						8,6,4,
+						9,4,6,
+						9,1,4,
+						9,11,1,
+						5,1,11,
+						5,11,7,
+						5,7,10,
+						10,7,2,
+
+						3,6,2, //Bottom
+						3,9,6,
+						3,11,9,
+						3,7,11,
+						3,2,7
+					 };
+
+
+	for (int i = 0; i < 60; i++)
+	{
+		idxIter[i] = temp[i];
+	}
+
+}
 
 #endif

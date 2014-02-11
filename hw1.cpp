@@ -69,28 +69,28 @@ static const bool g_Gl2Compatible = false;
 // Forward Declarations
 struct RigidBody;
 struct ShaderState;
-static RigidBody* makeTree();
+static RigidBody* buildIcosahedron();
 static const ShaderState& setupShader(int material);
 
-static const float g_frustMinFov = 64.5;  // A minimal of 60 degree field of view
+static const float g_frustMinFov = 60.0;  // A minimal of 60 degree field of view
 static float g_frustFovY = g_frustMinFov; // FOV in y direction (updated by updateFrustFovY)
 
 static float g_frustNear = -0.1;    // near plane
 static float g_frustFar = -50.0;    // far plane
 
-static const float g_groundY = 0.0;      // y coordinate of the ground
-static const float g_groundSize = 70.0;   // half the ground length
+static const float g_groundY = -5.0;      // y coordinate of the ground
+static const float g_groundSize = 20.0;   // half the ground length
 
 static int g_windowWidth = 512;
-static int g_windowHeight = 256;
-static double g_aspect = 5.5;//g_windowWidth / g_windowHeight;
+static int g_windowHeight = 512;
+//static double g_aspect = 5.5;//g_windowWidth / g_windowHeight;
 static bool g_mouseClickDown = false;    // is the mouse button pressed
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
 static float g_treeHeight = 15;
 static float g_lastTreeX = 0;
-static const int g_numOfObjects = 12; //Number of objects to be drawn
+static const int g_numOfObjects = 1; //Number of objects to be drawn
 static bool isKeyboardActive = true;
 static int mode = ASPECT;
 
@@ -348,7 +348,7 @@ static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_triangle;
 // --------- Scene
 
 static Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2000, -3000.0, -5000.0);  // define two lights positions in world space
-static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 3, 10.0)); // Default camera
+static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.0, 10.0)); // Default camera
 static RigTForm g_eyeRbt = g_skyRbt; //Set the g_eyeRbt frame to be default as the sky frame
 static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid Body Object
 
@@ -418,18 +418,18 @@ static void lookAtOrigin()
 /*-----------------------------------------------*/
 static void initCamera()
 {
-	Cvec3 eye = Cvec3(0.0, 7.48, 13.0);
-	Cvec3 at = Cvec3(0.0, 0.0, 0.0);
-	Cvec3 up = Cvec3(0.0,1.0,0.0);
+	Cvec3 eye = Cvec3(0.0, 0.0, 10.0);
+	//Cvec3 at = Cvec3(0.0, 0.0, 0.0);
+	//Cvec3 up = Cvec3(0.0,1.0,0.0);
 	//g_skyRbt = lookAt(eye, at, up); // Default camera
 	//g_skyRbt.setRotation(Quat().makeXRotation(lookAt(eye,up))); // TODO Change so lookat is done after conversion to Matrix
 	g_skyRbt.setTranslation(eye);
 	g_eyeRbt = g_skyRbt;
 
 	// Initialize near and far
-	float z = -eye[2];
-	g_frustNear = z / 2.0;
-	g_frustFar = (3 * z) / 2.0;
+	//float z = -eye[2];
+	//g_frustNear = z / 2.0;
+	//g_frustFar = (3 * z) / 2.0;
 }
 /*-----------------------------------------------*/
 static void initGround() {
@@ -470,6 +470,19 @@ static Geometry* initTriangles()
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+static Geometry* initIcosahedron() 
+{
+  int ibLen = 60;
+  int vbLen = 12;
+
+  // Temporary storage for cube geometry
+  vector<VertexPN> vtx(vbLen);
+  vector<unsigned short> idx(ibLen);
+
+  makeIcosahedron(vtx.begin(), idx.begin());
+  return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
 static Geometry* initSpheres() 
 {
 	int slices = 20;
@@ -502,140 +515,49 @@ static Geometry* initCylinders()
 	return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
-static void initGratuitousTriangle()
-{	
-	/* PURPOSE:		Creates a Gratuitous Triangle object  
-		REMARKS:		Creates a equilaterial of length 1 colored red
-	*/
-
-	RigTForm rigTemp = RigTForm(Cvec3(0, (g_treeHeight * 0.25) * 0.5, 1));
-	Matrix4 scaleTemp = Matrix4();
-	
-	// Make container
-	RigidBody *gratuitousTriangle = new RigidBody(rigTemp, Matrix4(), NULL, initCubes(), Cvec3(0.5, 0.5, 0.5), DIFFUSE);
-	gratuitousTriangle->isVisible = false;
-	gratuitousTriangle->name = "container";
-
-	// Make body
-	rigTemp = RigTForm();
-	scaleTemp = Matrix4::makeScale(Cvec3(5, (g_treeHeight * 0.25), 1)) * inv(gratuitousTriangle->scale);
-
-	RigidBody *body = new RigidBody(rigTemp, scaleTemp, NULL, initTriangles(), Cvec3(1,0,0), DIFFUSE);
-	body->name = "body";
-
-	//Setup Children
-	gratuitousTriangle->numOfChildren = 1;
-
-	gratuitousTriangle->children = new RigidBody*[gratuitousTriangle->numOfChildren];
-	gratuitousTriangle->children[0] = body;
-
-	g_rigidBodies[11] = *gratuitousTriangle;
-	glutPostRedisplay();
-}
-/*-----------------------------------------------*/
-static void initTrees()
+static void initDie()
 {
-	/* PURPOSE:		Initializes each tree to it's position, scale, and rotation  
+	/* PURPOSE:		Creates a Icosahedron die with an image textured surface 
+		REMARKS:		Icosahedron is edge length 2
 	*/
 
-	int numOfTrees = 11;
-	float treeStart = -33;
-
-	// Build Trees
-	for (int i = 0; i < numOfTrees; i++)
-	{
-		RigidBody *tree;
-		tree = makeTree();
-		g_rigidBodies[i] = *tree;
-	}
-
-	// Set Tree Positions
-	Cvec3 position = g_rigidBodies[0].rtf.getTranslation();
-	position = position + Cvec3(treeStart,0,0);
-
-	for (int i = 0; i < numOfTrees; i++)
-	{
-		g_rigidBodies[i].rtf.setTranslation(position);
-		position = position + Cvec3(-treeStart/5.0,0,0);
-	}
-
-	g_lastTreeX = position[0];
+	RigidBody *die;
+	die = buildIcosahedron();
+	g_rigidBodies[0] = *die;
 
 	glutPostRedisplay();
 }
 /*-----------------------------------------------*/
-static RigidBody* makeTree()
+static RigidBody* buildIcosahedron()
 {
-	/* PURPOSE:		Creates a tree object  
-		RETURNS:    RigidBody* that points to the tree
-		REMARKS:		Creates a 3 apple tree only
+	/* PURPOSE:		Creates an Icosahedron object  
+		RETURNS:    RigidBody* that points to the Icosahedron
 	*/
-
-	float foliageScale = 3.0;
-	float height = g_treeHeight - foliageScale;
-	float width = 1.0;
-	float thick = 1.0;
+	float width = 1;
+	float height = 1;
+	float thick = 1;
 
 	RigTForm rigTemp = RigTForm(Cvec3(0, 0, 0));
 	Matrix4 scaleTemp = Matrix4();
 	
 	// Make container
-	RigidBody *tree = new RigidBody(RigTForm(), Matrix4(), NULL, initCubes(), Cvec3(0.5, 0.5, 0.5), DIFFUSE);
-	tree->isVisible = false;
-	tree->name = "container";
+	RigidBody *icosahedron = new RigidBody(RigTForm(), Matrix4(), NULL, initCubes(), Cvec3(0.5, 0.5, 0.5), DIFFUSE);
+	icosahedron->isVisible = false;
+	icosahedron->name = "container";
 
-	// Make trunk
+	// Make Icosahedron
 	rigTemp = RigTForm(Cvec3(0, 0, 0));
 	scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
 
-	RigidBody *trunk = new RigidBody(rigTemp, scaleTemp, NULL, initCylinders(), Cvec3(0.543,0.270,0.074), DIFFUSE);
-	trunk->name = "trunk";
-
-	// Make foliage
-	rigTemp = RigTForm(Cvec3(0, height / 2.0, 0));
-	scaleTemp = Matrix4::makeScale(Cvec3(foliageScale, foliageScale, foliageScale)) * inv(trunk->scale);
-
-	RigidBody *foliage = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(0,1,0), SHINY);
-	foliage->name = "foliage";
-	//foliage->isVisible = false;
-
-	// Make Apples
-	rigTemp = RigTForm(Cvec3(0, foliageScale / 2.0, foliageScale - .5));
-	scaleTemp = Matrix4::makeScale(Cvec3(0.1, 0.1, 0.1));
-
-	RigidBody *apple0 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(1,0,0), ANISOTROPY);
-	apple0->name = "apple0";
-
-	rigTemp = RigTForm(Cvec3(-foliageScale / 2.0, 0, foliageScale - .3));
-
-	RigidBody *apple1 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(1,0,0), ANISOTROPY);
-	apple1->name = "apple1";
-
-	rigTemp = RigTForm(Cvec3(foliageScale / 2.0, 0, foliageScale - .3));
-
-	RigidBody *apple2 = new RigidBody(rigTemp, scaleTemp, NULL, initSpheres(), Cvec3(1,0,0), ANISOTROPY);
-	apple2->name = "apple2";
+	RigidBody *die = new RigidBody(rigTemp, scaleTemp, NULL, initIcosahedron(), Cvec3(1,0,0), SHINY);
+	die->name = "icosahedron";
 
 	//Setup Children
-	tree->numOfChildren = 1;
-	trunk->numOfChildren = 1;
-	foliage->numOfChildren = 3;
+	icosahedron->numOfChildren = 1;
+	icosahedron->children = new RigidBody*[icosahedron->numOfChildren];
+	icosahedron->children[0] = die;
 
-	tree->children = new RigidBody*[tree->numOfChildren];
-	tree->children[0] = trunk;
-
-	trunk->children = new RigidBody*[trunk->numOfChildren];
-	trunk->children[0] = foliage;
-	
-	foliage->children = new RigidBody*[foliage->numOfChildren];
-	foliage->children[0] = apple0;
-	foliage->children[1] = apple1;
-	foliage->children[2] = apple2;
-
-	// Move tree to final position
-	tree->rtf.setTranslation(Cvec3(0, height/2.0, 0));
-
-	return tree;
+	return icosahedron;
 }
 /*-----------------------------------------------*/
 // takes a projection matrix and send to the the shaders
@@ -655,19 +577,9 @@ static void sendModelViewNormalMatrix(const ShaderState& curSS, const Matrix4& M
   safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
 }
 
-// update g_frustFovY from g_frustMinFov, g_windowWidth, and g_windowHeight
-static void updateFrustFovY() {
-  if (g_windowWidth >= g_windowHeight)
-    g_frustFovY = g_frustMinFov;
-  else {
-    const double RAD_PER_DEG = 0.5 * CS175_PI/180;
-    g_frustFovY = atan2(sin(g_frustMinFov * RAD_PER_DEG) * g_windowHeight / g_windowWidth, cos(g_frustMinFov * RAD_PER_DEG)) / RAD_PER_DEG;
-  }
-}
-
 static Matrix4 makeProjectionMatrix() {
   return Matrix4::makeProjection(
-           g_frustFovY, g_aspect,
+	  g_frustFovY, g_windowWidth / static_cast <double> (g_windowHeight),
            g_frustNear, g_frustFar);
 }
 /*-----------------------------------------------*/
@@ -742,19 +654,6 @@ static const ShaderState& setupShader(int material)
 	return curSS;
 }
 /*-----------------------------------------------*/
-static void printCamera()
-{
-	/* PURPOSE:		Prints Camera Globals for debugging  
-	*/
-	cout << "Aspect = " << g_aspect << endl;
-	cout << "FoV = " << g_frustFovY << endl;
-	cout << "Zaxis = " << g_eyeRbt.getTranslation()[2] << endl;
-	cout << "Near = " << g_frustNear << endl;
-	cout << "Far = " << g_frustFar << endl;
-	cout << "Eye[1] = " << g_eyeRbt.getTranslation()[1] << endl;
-	cout << "=================" << endl;
-}
-/*-----------------------------------------------*/
 static void display() {
   glUseProgram(g_shaderStates[g_activeShader]->program);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);                   // clear framebuffer color&depth
@@ -771,7 +670,6 @@ static void reshape(const int w, const int h) {
   g_windowHeight = h;
   glViewport(0, 0, w, h);
   cerr << "Size of window is now " << w << "x" << h << endl;
-  updateFrustFovY();
   glutPostRedisplay();
 }
 /*-----------------------------------------------*/
@@ -795,7 +693,7 @@ static void motion(const int x, const int y) {
 
   if (g_mouseClickDown) {
 //	  g_objectRbt[0] *= m; // Simply right-multiply is WRONG
-	  //g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf; //Update Robot Container
+	  //g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf; //Update Icosahedron
 	  g_eyeRbt = m * g_eyeRbt; //Update Camera
 	  glutPostRedisplay(); // we always redraw if we changed the scene
   }
@@ -866,19 +764,17 @@ static void keyboard(const unsigned char key, const int x, const int y)
 		}
 		else if (key == 'b')
 		{
-			// Rotate Gratutious Triangle 180 degrees
-			g_rigidBodies[11].rtf.setRotation(g_rigidBodies[11].rtf.getRotation() * Quat().makeYRotation(180));
 		}
 		else if (key == '-')
 		{
 			if (mode == ASPECT)
 			{
-				g_aspect -= 0.1;
-				g_windowWidth = g_aspect * g_windowHeight;
+				//g_aspect -= 0.1;
+				//g_windowWidth = g_aspect * g_windowHeight;
 			}
 			else if (mode == FOV)
 			{
-				g_frustFovY -= 0.1;
+				//g_frustFovY -= 0.1;
 			}
 			else if (mode == ZAXIS)
 			{
@@ -886,19 +782,17 @@ static void keyboard(const unsigned char key, const int x, const int y)
 				Cvec3 cameraTrans = g_eyeRbt.getTranslation();
 				g_eyeRbt.setTranslation(cameraTrans + Cvec3(0,0,1));
 			}
-
-			//printCamera();
 		}
 		else if (key == '=')
 		{
 			if (mode == ASPECT)
 			{
-				g_aspect += 0.1;
-				g_windowWidth = g_aspect * g_windowHeight;
+				//g_aspect += 0.1;
+				//g_windowWidth = g_aspect * g_windowHeight;
 			}
 			else if (mode == FOV)
 			{
-				g_frustFovY += 0.1;
+				//g_frustFovY += 0.1;
 			}
 			else if (mode == ZAXIS)
 			{
@@ -906,8 +800,6 @@ static void keyboard(const unsigned char key, const int x, const int y)
 				Cvec3 cameraTrans = g_eyeRbt.getTranslation();
 				g_eyeRbt.setTranslation(cameraTrans - Cvec3(0,0,1));
 			}
-
-			//printCamera();
 		}
 	}
 
@@ -956,9 +848,8 @@ static void initShaders() {
 static void initGeometry() 
 {
 	//Initialize Object Matrix array
-	initTrees();
+	initDie();
 	initGround();
-	initGratuitousTriangle();
 }
 /*-----------------------------------------------*/
 static void initLights()
