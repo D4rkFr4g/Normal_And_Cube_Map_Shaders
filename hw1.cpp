@@ -41,7 +41,7 @@
 
 #define M_PI 3.1415926535897932384626433832795;
 enum {ASPECT, FOV, ZAXIS};
-enum {DIFFUSE, SOLID, SHINY, ANISOTROPY};
+enum {DIFFUSE, SOLID, SHINY, TEXTURE};
 
 
 using namespace std;      // for string, vector, iostream, and other standard C++ stuff
@@ -139,13 +139,13 @@ static const char * const g_shaderFiles[g_numShaders][2] = {
 	{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
-	{"./shaders/basic-gl3.vshader", "./shaders/anisotropy-gl3.fshader"}
+	{"./shaders/basic-gl3.vshader", "./shaders/texture-gl3.fshader"}
 };
 static const char * const g_shaderFilesGl2[g_numShaders][2] = {
   {"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
   {"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
-	{"./shaders/basic-gl2.vshader", "./shaders/anisotropy-gl2.fshader"}
+	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"}
 };
 static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
 
@@ -549,7 +549,7 @@ static RigidBody* buildIcosahedron()
 	rigTemp = RigTForm(Cvec3(0, 0, 0));
 	scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
 
-	RigidBody *die = new RigidBody(rigTemp, scaleTemp, NULL, initIcosahedron(), Cvec3(1,0,0), SHINY);
+	RigidBody *die = new RigidBody(rigTemp, scaleTemp, NULL, initIcosahedron(), Cvec3(1,0,0), TEXTURE);
 	die->name = "icosahedron";
 
 	//Setup Children
