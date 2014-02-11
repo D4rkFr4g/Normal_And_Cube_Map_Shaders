@@ -18,14 +18,29 @@ struct GenericVertex {
   Cvec2f tex;
   Cvec3f tangent, binormal;
 
+  GenericVertex() {}
   GenericVertex(
     float x, float y, float z,
     float nx, float ny, float nz,
     float tu, float tv,
     float tx, float ty, float tz,
     float bx, float by, float bz)
-    : pos(x,y,z), normal(nx,ny,nz), tex(tu, tv), tangent(tx, ty, tz), binormal(bx, by, bz)
-  {}
+    : pos(x,y,z), normal(nx,ny,nz), tex(tu, tv), tangent(tx, ty, tz), binormal(bx, by, bz){}
+
+	GenericVertex(const GenericVertex& v)
+	{
+		*this = v;
+	}
+
+	GenericVertex& operator = (const GenericVertex& v)
+	{
+		pos = v.pos;
+		normal = v.normal;
+		tex = v.tex;
+		tangent = v.tangent;
+		binormal = v.binormal;
+		return *this;
+	}
 };
 
 inline void getPlaneVbIbLen(int& vbLen, int& ibLen) {

@@ -15,5 +15,5 @@ void main() {
   vec4 texColor0 = texture2D(uTexUnit0, vTexCoord0);
 
   float diffuse = max(0.0, dot(normal, tolight));
-  fragColor = texColor0 * diffuse;
+  fragColor = texColor0;// * diffuse;
 }

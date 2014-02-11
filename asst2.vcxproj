@@ -109,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
+    <None Include="myphoto.ppm" />
     <None Include="shaders\anisotropy-gl2.fshader" />
     <None Include="shaders\anisotropy-gl3.fshader" />
     <None Include="shaders\basic-gl2.vshader" />

@@ -102,12 +102,14 @@ struct ShaderState {
   GLint h_uProjMatrix;
   GLint h_uModelViewMatrix;
   GLint h_uNormalMatrix;
+  GLint h_uTexUnit0;
   GLint h_uColor;
 
   // Handles to vertex attributes
   GLint h_aPosition;
   GLint h_aNormal;
   GLint h_aTangent;
+  GLint h_aTexCoord0;
 
   ShaderState(const char* vsfn, const char* fsfn) {
     readAndCompileShader(program, vsfn, fsfn);
@@ -121,11 +123,13 @@ struct ShaderState {
     h_uModelViewMatrix = safe_glGetUniformLocation(h, "uModelViewMatrix");
     h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
     h_uColor = safe_glGetUniformLocation(h, "uColor");
+	 h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
 
     // Retrieve handles to vertex attributes
     h_aPosition = safe_glGetAttribLocation(h, "aPosition");
     h_aNormal = safe_glGetAttribLocation(h, "aNormal");
 	 h_aTangent = safe_glGetAttribLocation(h, "aTangent");
+	 h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
 
     if (!g_Gl2Compatible)
       glBindFragDataLocation(h, 0, "fragColor");
@@ -148,12 +152,14 @@ static const char * const g_shaderFilesGl2[g_numShaders][2] = {
 	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"}
 };
 static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
+static shared_ptr<GlTexture> g_tex0;
 
 // --------- Geometry
 
 // Macro used to obtain relative offset of a field within a struct
 #define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
 
+/*
 // A vertex with floating point position and normal
 struct VertexPN {
   Cvec3f p, n, t;
@@ -178,21 +184,24 @@ struct VertexPN {
     return *this;
   }
 };
-
+*/
 struct Geometry {
-  GlBufferObject vbo, ibo;
+  GlBufferObject vbo, ibo, texVbo;
   int vboLen, iboLen;
 
-  Geometry(VertexPN *vtx, unsigned short *idx, int vboLen, int iboLen) {
+  Geometry(GenericVertex *vtx, unsigned short *idx, int vboLen, int iboLen) {
     this->vboLen = vboLen;
     this->iboLen = iboLen;
 
     // Now create the VBO and IBO
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPN) * vboLen, vtx, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex) * vboLen, vtx, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * iboLen, idx, GL_STATIC_DRAW);
+
+	 glBindBuffer(GL_ARRAY_BUFFER,  texVbo);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(GenericVertex) * vboLen, vtx, GL_STATIC_DRAW);
   }
 
   void draw(const ShaderState& curSS) {
@@ -200,12 +209,15 @@ struct Geometry {
     safe_glEnableVertexAttribArray(curSS.h_aPosition);
     safe_glEnableVertexAttribArray(curSS.h_aNormal);
 	 safe_glEnableVertexAttribArray(curSS.h_aTangent);
+	 safe_glEnableVertexAttribArray(curSS.h_aTexCoord0);
 
     // bind vbo
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, p));
-    safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, n));
-	 safe_glVertexAttribPointer(curSS.h_aTangent, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, t));
+    safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, pos));
+    safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, normal));
+	 safe_glVertexAttribPointer(curSS.h_aTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
+	 glBindBuffer(GL_ARRAY_BUFFER, texVbo);
+	 safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
 
     // bind ibo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -217,6 +229,7 @@ struct Geometry {
     safe_glDisableVertexAttribArray(curSS.h_aPosition);
     safe_glDisableVertexAttribArray(curSS.h_aNormal);
 	 safe_glDisableVertexAttribArray(curSS.h_aTangent);
+	 safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
   }
 
 	void draw(const ShaderState& curSS, Matrix4 MVM)
@@ -347,7 +360,7 @@ static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_triangle;
 
 // --------- Scene
 
-static Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2000, -3000.0, -5000.0);  // define two lights positions in world space
+static Cvec3 g_light1(0.0, 5.0, 0.0), g_light2(-2000, -3000.0, -5000.0);  // define two lights positions in world space
 static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.0, 10.0)); // Default camera
 static RigTForm g_eyeRbt = g_skyRbt; //Set the g_eyeRbt frame to be default as the sky frame
 static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid Body Object
@@ -434,11 +447,11 @@ static void initCamera()
 /*-----------------------------------------------*/
 static void initGround() {
   // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
-  VertexPN vtx[4] = {
-    VertexPN(-g_groundSize, g_groundY, -g_groundSize, 0, 1, 0, 0, 1, 0),
-    VertexPN(-g_groundSize, g_groundY,  g_groundSize, 0, 1, 0, 0, 1, 0),
-    VertexPN( g_groundSize, g_groundY,  g_groundSize, 0, 1, 0, 0, 1, 0),
-    VertexPN( g_groundSize, g_groundY, -g_groundSize, 0, 1, 0, 0, 1, 0),
+    GenericVertex vtx[4] = {
+    GenericVertex(-g_groundSize, g_groundY, -g_groundSize, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+    GenericVertex(-g_groundSize, g_groundY,  g_groundSize, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+    GenericVertex( g_groundSize, g_groundY,  g_groundSize, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+    GenericVertex( g_groundSize, g_groundY, -g_groundSize, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0),
   };
   unsigned short idx[] = {0, 1, 2, 0, 2, 3};
   g_ground.reset(new Geometry(&vtx[0], &idx[0], 4, 6));
@@ -450,7 +463,7 @@ static Geometry* initCubes()
   getCubeVbIbLen(vbLen, ibLen);
 
   // Temporary storage for cube geometry
-  vector<VertexPN> vtx(vbLen);
+  vector<GenericVertex> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
   makeCube(1, vtx.begin(), idx.begin());
@@ -463,7 +476,7 @@ static Geometry* initTriangles()
   int vbLen = 3;
 
   // Temporary storage for cube geometry
-  vector<VertexPN> vtx(vbLen);
+  vector<GenericVertex> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
   makeTriangle(vtx.begin(), idx.begin());
@@ -476,7 +489,7 @@ static Geometry* initIcosahedron()
   int vbLen = 12;
 
   // Temporary storage for cube geometry
-  vector<VertexPN> vtx(vbLen);
+  vector<GenericVertex> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
   makeIcosahedron(vtx.begin(), idx.begin());
@@ -492,7 +505,7 @@ static Geometry* initSpheres()
 	getSphereVbIbLen(slices, stacks, vbLen, ibLen);
 
 	// Temporary storage for cube geometry
-	vector<VertexPN> vtx(vbLen);
+	vector<GenericVertex> vtx(vbLen);
 	vector<unsigned short> idx(ibLen);
 
 	makeSphere(radius, slices, stacks, vtx.begin(), idx.begin());
@@ -508,7 +521,7 @@ static Geometry* initCylinders()
 	getCylinderVbIbLen(slices, vbLen, ibLen);
 
 	// Temporary storage for cube geometry
-	vector<VertexPN> vtx(vbLen);
+	vector<GenericVertex> vtx(vbLen);
 	vector<unsigned short> idx(ibLen);
 
 	makeCylinder(slices, radius, height, vtx.begin(), idx.begin());
@@ -679,7 +692,8 @@ static void motion(const int x, const int y) {
 
 	RigTForm m;
 	if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
-		m = g_eyeRbt * RigTForm(Quat().makeXRotation(dy)) * RigTForm(Quat().makeYRotation(-dx)) * inv(g_eyeRbt);
+		//m = g_eyeRbt * RigTForm(Quat().makeXRotation(dy)) * RigTForm(Quat().makeYRotation(-dx)) * inv(g_eyeRbt);
+		m = g_rigidBodies[0].rtf * RigTForm(Quat().makeXRotation(dy)) * RigTForm(Quat().makeYRotation(-dx)) * inv(g_rigidBodies[0].rtf);
 	}
   else if (g_mouseRClickButton && !g_mouseLClickButton) 
   { // right button down?
@@ -693,8 +707,8 @@ static void motion(const int x, const int y) {
 
   if (g_mouseClickDown) {
 //	  g_objectRbt[0] *= m; // Simply right-multiply is WRONG
-	  //g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf; //Update Icosahedron
-	  g_eyeRbt = m * g_eyeRbt; //Update Camera
+	  g_rigidBodies[0].rtf = m * g_rigidBodies[0].rtf; //Update Icosahedron
+	  //g_eyeRbt = m * g_eyeRbt; //Update Camera
 	  glutPostRedisplay(); // we always redraw if we changed the scene
   }
 
@@ -857,6 +871,34 @@ static void initLights()
 	g_light1 = Cvec3(g_lastTreeX, g_treeHeight + 5.0, 0);
 }
 /*-----------------------------------------------*/
+static void loadTexture(GLuint texHandle, const char *ppmFilename) {
+    int texWidth, texHeight;
+    vector<PackedPixel> pixData;
+    
+    ppmRead(ppmFilename, texWidth, texHeight, pixData);
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texHandle);
+    glTexImage2D(GL_TEXTURE_2D, 0, g_Gl2Compatible ? 
+       GL_RGB : GL_SRGB, texWidth, texHeight, 0, GL_RGB, 
+                GL_UNSIGNED_BYTE, &pixData[0]);
+    checkGlErrors();
+}
+/*-----------------------------------------------*/
+static void initTextures() {
+    g_tex0.reset(new GlTexture());
+    
+    loadTexture(*g_tex0, "myphoto.ppm");
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, *g_tex0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    
+}
+/*-----------------------------------------------*/
 int main(int argc, char * argv[]) {
   try {
 		initGlutState(argc,argv);
@@ -874,6 +916,7 @@ int main(int argc, char * argv[]) {
 		initCamera();
 		initGeometry();
 		initLights();
+		initTextures();
 
 		glutMainLoop();
 		return 0;

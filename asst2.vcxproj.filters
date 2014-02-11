@@ -54,6 +54,7 @@
     <None Include="shaders\texture-gl3.fshader">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="myphoto.ppm" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
