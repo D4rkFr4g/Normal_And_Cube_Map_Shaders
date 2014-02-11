@@ -5,10 +5,12 @@ uniform mat4 uNormalMatrix;
 attribute vec3 aPosition;
 attribute vec3 aNormal;
 attribute vec4 aTangent;
+attribute vec2 aTexCoord0;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec3 vTangent;
+varying vec2 vTexCoord0;
 
 void main() 
 {
@@ -17,6 +19,7 @@ void main()
   // send position (eye coordinates) to fragment shader
   vec4 tPosition = uModelViewMatrix * vec4(aPosition, 1.0);
   vPosition = vec3(tPosition);
+  vTexCoord0 = aTexCoord0;
   vTangent = normalize(vec3(uModelViewMatrix * vec4(vec3(aTangent), 0.0)));
   gl_Position = uProjMatrix * tPosition;
 }
