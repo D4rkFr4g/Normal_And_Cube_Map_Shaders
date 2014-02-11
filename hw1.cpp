@@ -989,6 +989,7 @@ int main(int argc, char * argv[]) {
   }
   catch (const runtime_error& e) {
     cout << "Exception caught: " << e.what() << endl;
+    cin.ignore(); // pause to let users read whatever error came out
     return -1;
   }
 }
