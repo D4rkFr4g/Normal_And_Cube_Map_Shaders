@@ -722,7 +722,7 @@ static void motion(const int x, const int y) {
 	RigTForm m;
 	if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
 		//m = g_eyeRbt * RigTForm(Quat().makeXRotation(dy)) * RigTForm(Quat().makeYRotation(-dx)) * inv(g_eyeRbt);
-		m = g_rigidBodies[0].rtf * RigTForm(Quat().makeXRotation(dy)) * RigTForm(Quat().makeYRotation(-dx)) * inv(g_rigidBodies[0].rtf);
+		m = g_rigidBodies[0].rtf * RigTForm(Quat().makeXRotation(-dy)) * RigTForm(Quat().makeYRotation(dx)) * inv(g_rigidBodies[0].rtf);
 	}
   else if (g_mouseRClickButton && !g_mouseLClickButton) 
   { // right button down?

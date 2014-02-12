@@ -41,6 +41,12 @@ struct GenericVertex {
 		binormal = v.binormal;
 		return *this;
 	}
+
+	void setTex(float tu, float tv)
+	{
+		tex[0] = tu;
+		tex[1] = tv;
+	}
 };
 
 inline void getPlaneVbIbLen(int& vbLen, int& ibLen) {
@@ -274,6 +280,9 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 	threePoints[1] = Cvec3f(startX, -0.5, 0);
 	threePoints[2] = Cvec3f(startX, 0.5, 0);
 	
+
+	float textures[][2] = {{1,0},{0,0},{.5,1}};
+
 	for (int i = 0; i < 3; i++)
 	{
 		float x = threePoints[i][0];
@@ -287,7 +296,7 @@ void makeTriangle(VtxOutIter vtxIter, IdxOutIter idxIter)
 		*vtxIter = GenericVertex(
 			x, y, z,
 			n[0], n[1], n[2],
-			1.0/i, 1.0/2*i,
+			textures[i][0], textures[i][1],
 			t[0], t[1], t[2],
 			b[0], b[1], b[2]);
 		++vtxIter;
@@ -322,6 +331,9 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 	points[10] = Cvec3f(-phi, 0, -1);	//Back-left
 	points[11] = Cvec3f(phi, 0, -1);		//Back-right
 	
+	//Setup tu, tv
+	float textures[][2] = {{0.5,1},{1,0},{0.5,1},{1,0},{0,0},{0,0},{0,0},{0,0},{1,0},{0.5,1},{0,0},{0,0}};
+	//float textures[][2] = {{0,0},{1,1},{0,0},{0,0},{0,1},{0,0},{0,0},{0,0},{0,0},{1,0},{0,0},{0,0}};
 
 	//Load all points into vtxIter
 	for (int i = 0; i < 12; i++)
@@ -337,7 +349,7 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 		*vtxIter = GenericVertex(
 			x, y, z,
 			n[0], n[1], n[2],
-			1.0/i, 1.0/2*i,
+			textures[i][0], textures[i][0],
 			t[0], t[1], t[2],
 			b[0], b[1], b[2]);
 		++vtxIter;
@@ -367,12 +379,35 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 						3,2,7
 					 };
 
+	// Isolating one triangle
+	int temp2[] = {0,6,9, //Top
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+
+						1,1,1, //Middle
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1,
+
+						1,1,1, //Bottom
+						1,1,1,
+						1,1,1,
+						1,1,1,
+						1,1,1
+					 };
 
 	for (int i = 0; i < 60; i++)
 	{
 		idxIter[i] = temp[i];
 	}
-
 }
 
 #endif
