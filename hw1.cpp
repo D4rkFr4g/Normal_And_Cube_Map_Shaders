@@ -88,11 +88,11 @@ static bool g_mouseClickDown = false;    // is the mouse button pressed
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
-static float g_treeHeight = 15;
-static float g_lastTreeX = 0;
-static const int g_numOfObjects = 2; //Number of objects to be drawn
+//static float g_treeHeight = 15;
+//static float g_lastTreeX = 0;
+static const int g_numOfObjects = 1; //Number of objects to be drawn
 static bool isKeyboardActive = true;
-static int mode = ASPECT;
+//static int mode = ASPECT;
 
 struct ShaderState {
   GlProgram program;
@@ -287,13 +287,7 @@ struct RigidBody
 		RigTForm respectFrame = invEyeRbt;
 		draw(respectFrame, Matrix4());
 	}
-/*
-	void drawRigidBody(RigTForm invEyeRbt, const ShaderState& state)
-	{
-		RigTForm respectFrame = invEyeRbt;
-		draw(respectFrame, Matrix4(), state);
-	}
-*/
+
 	void draw(RigTForm respectFrame_, Matrix4 respectScale_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -320,35 +314,7 @@ struct RigidBody
 		}
 		
 	}
-/*	
-	void draw(RigTForm respectFrame_, Matrix4 respectScale_, const ShaderState& state)
-	{
-		const ShaderState& curSS = state;
-		safe_glUniform3f(curSS.h_uColor, color[0], color[1], color[2]);
-	
-		// Draw Parent
-		RigTForm respectFrame = respectFrame_ * rtf;
-		Matrix4 respectScale = respectScale_ * scale;
-		Matrix4 MVM = RigTForm::makeTRmatrix(respectFrame, respectScale);
 
-		if (isVisible)
-		{
-			if (geom != NULL)
-				geom->draw(curSS, MVM);
-		}
-
-		//Draw Children
-		if (isChildVisible)
-		{
-			for (int i = 0; i < numOfChildren; i++)
-			{
-				children[i]->draw(respectFrame, respectScale, state);
-			}
-		}
-		
-	}
-	
-*/
 	void draw(Matrix4 respectFrame_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -378,7 +344,7 @@ static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_triangle;
 
 // --------- Scene
 
-static Cvec3 g_light1(0.0, 5.0, 0.0), g_light2(-2000, -3000.0, -5000.0);  // define two lights positions in world space
+static Cvec3 g_light1(0.0, 5.0, 10.0), g_light2(-2000, -3000.0, -5000.0);  // define two lights positions in world space
 static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.0, 10.0)); // Default camera
 static RigTForm g_eyeRbt = g_skyRbt; //Set the g_eyeRbt frame to be default as the sky frame
 static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid Body Object
@@ -558,9 +524,10 @@ static Geometry* initCylinders()
 	return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+/*
 static RigidBody* buildTriangle()
 {
-	RigTForm rigTemp = RigTForm(Cvec3(0, (g_treeHeight * 0.25) * 0.5, 1));
+	RigTForm rigTemp = RigTForm(Cvec3(0, 1, 1));
 	Matrix4 scaleTemp = Matrix4();
 	
 	// Make Triangle
@@ -570,6 +537,7 @@ static RigidBody* buildTriangle()
 
 	return triangle;
 }
+*/
 /*-----------------------------------------------*/
 static void initDie()
 {
@@ -580,11 +548,6 @@ static void initDie()
 	RigidBody *die;
 	die = buildIcosahedron(); //icosahedron
 	g_rigidBodies[0] = *die;
-
-	// Test code to be removed
-	RigidBody *triangle;
-	triangle = buildTriangle();
-	g_rigidBodies[1] = *triangle;
 
 	glutPostRedisplay();
 }
@@ -665,6 +628,7 @@ static void drawStuff()
 	safe_glUniform3f(curSS.h_uLight, eyeLight1[0], eyeLight1[1], eyeLight1[2]);
 	safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
 
+	/*
 	// draw ground
 	// ===========
 	//
@@ -673,7 +637,8 @@ static void drawStuff()
 	Matrix4 NMVM = normalMatrix(MVM);
 	sendModelViewNormalMatrix(curSS, MVM, NMVM);
 	safe_glUniform3f(curSS.h_uColor, 0.1, 0.95, 0.1); // set color
-	g_ground->draw(curSS);
+	//g_ground->draw(curSS);
+	*/
 
 	// Draw all Rigid body objects
 	for (int i = 0; i < g_numOfObjects; i++)
@@ -822,7 +787,7 @@ static void keyboard(const unsigned char key, const int x, const int y)
 	
 		if (key == 'n')
 		{
-			g_rigidBodies[0].children[0]->material = SHINY;
+			g_rigidBodies[0].children[0]->material = NORMAL;
 			g_rigidBodies[0].children[0]->color = Cvec3(1, 0, 0);
 		}
 		else if (key == 'c')
@@ -878,14 +843,15 @@ static void initGeometry()
 {
 	//Initialize Object Matrix array
 	initDie();
-	initGround();
+	//initGround();
 }
 /*-----------------------------------------------*/
+/*
 static void initLights()
 {
-	g_light1 = Cvec3(g_lastTreeX, g_treeHeight + 5.0, 0);
+	//g_light1 = Cvec3(g_lastTreeX, g_treeHeight + 5.0, 0);
 }
-
+*/
 static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 {
     int width = 512, height = 512;
@@ -974,7 +940,7 @@ int main(int argc, char * argv[]) {
 		initShaders();
 		initCamera();
 		initGeometry();
-		initLights();
+		//initLights();
 		initTextures();
 
 		glutMainLoop();
