@@ -16,9 +16,9 @@ void main()
     vec3 h = normalize(toV + toLight);
 
     vec4 texNormal = texture2D(uTexUnit1, vTexCoord1);
-    vec3 scaledTexNormal = normalize(2.0 * vec3(texNormal) - vec3(1., 1., 1.));
+    vec3 scaledTexNormal = normalize(2.0 * vec3(texNormal) + vNormal);
 
-    float specular = pow(max(0.0, dot(h, scaledTexNormal)), 64.0);
+    float specular = pow(max(0.0, dot(h, normalize(vNormal))), 64.0);
     float diffuse = max(0.0, dot(vec3(scaledTexNormal), toLight));
     vec3 intensity = vec3(0.001, 0.001, 0.001) + uColor * diffuse
         + vec3(0.6, 0.6, 0.6) *specular;
