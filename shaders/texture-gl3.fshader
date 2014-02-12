@@ -1,11 +1,12 @@
 #version 130
 
 uniform vec3 uLight;
-uniform sampler2D uTexUnit0;
+uniform sampler2D uTexUnit0, uTexUnit1;
 
 in vec3 vNormal;
 in vec3 vPosition;
 in vec2 vTexCoord0;
+in vec2 vTexCoord1;
 
 out vec4 fragColor;
 

@@ -139,7 +139,6 @@ struct ShaderState {
       glBindFragDataLocation(h, 0, "fragColor");
     checkGlErrors();
   }
-
 };
 
 static const int g_numShaders = 5;
@@ -658,6 +657,9 @@ static const ShaderState& setupShader(int material)
 	glUseProgram(g_shaderStates[material]->program);
 	const ShaderState& curSS = *g_shaderStates[material];
 
+	safe_glUniform1i(curSS.h_uTexUnit0, 0);
+	safe_glUniform1i(curSS.h_uTexUnit1, 1);
+
 	// Build & send proj. matrix to vshader
 	const Matrix4 projmat = makeProjectionMatrix();
 	sendProjectionMatrix(curSS, projmat);
@@ -883,6 +885,7 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
             p.b = (unsigned char)(255 * (z + 1)/2);
 			//cout << "x: " << x << "\ty: " << y << "\tz: " << z << endl; // They don't look wrong, it just doesn't work.
 
+				// Create a color and write to ppm file
 				static unsigned char color[3];
 				color[0] = p.r;
 				color[1] = p.g;
@@ -895,8 +898,6 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 	 //Close File
 	 (void) fclose(fp);
 
-	 
-
     glActiveTexture(type);
     glBindTexture(GL_TEXTURE_2D, texHandle);
     glTexImage2D(GL_TEXTURE_2D, 0, g_Gl2Compatible ? GL_RGB : GL_SRGB, width,
@@ -905,26 +906,24 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 }
 
 /*-----------------------------------------------*/
-static void loadTexture(GLuint texHandle, const char *ppmFilename) {
+static void loadTexture(GLuint type, GLuint texHandle, const char *ppmFilename) {
     int texWidth, texHeight;
     vector<PackedPixel> pixData;
     
     ppmRead(ppmFilename, texWidth, texHeight, pixData);
     
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(type);
     glBindTexture(GL_TEXTURE_2D, texHandle);
     glTexImage2D(GL_TEXTURE_2D, 0, g_Gl2Compatible ? 
        GL_RGB : GL_SRGB, texWidth, texHeight, 0, GL_RGB, 
                 GL_UNSIGNED_BYTE, &pixData[0]);
     checkGlErrors();
-
-	
 }
 /*-----------------------------------------------*/
 static void initTextures() {
     g_tex0.reset(new GlTexture());
     
-    loadTexture(*g_tex0, "myphoto.ppm");
+	 loadTexture(GL_TEXTURE0, *g_tex0, "myphoto.ppm");
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, *g_tex0);

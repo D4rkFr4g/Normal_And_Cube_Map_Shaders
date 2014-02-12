@@ -1,9 +1,10 @@
 uniform vec3 uLight;
-uniform sampler2D uTexUnit0;
+uniform sampler2D uTexUnit0, uTexUnit1;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec2 vTexCoord0;
+varying vec2 vTexCoord1;
 
 void main() {
   vec3 tolight = normalize(uLight - vPosition);
