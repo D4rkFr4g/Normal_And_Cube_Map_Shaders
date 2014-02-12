@@ -790,12 +790,11 @@ static void keyboard(const unsigned char key, const int x, const int y)
 				g_activeShader ^= 1;
 				break;
 			case 't':
-				cout << "Current material: " << g_rigidBodies[0].children[0]->material << endl;
-
 				g_rigidBodies[0].children[0]->material++;
 				if(g_rigidBodies[0].children[0]->material >= g_numShaders) {
                 g_rigidBodies[0].children[0]->material = 0;
             }
+				cout << "Current material: " << g_rigidBodies[0].children[0]->material << endl;
 				break;
         break;
 	  }
