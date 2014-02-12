@@ -314,7 +314,7 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 
 	float phi = (1 + sqrt(5.0)) / 2.0;
 
-	Cvec3f *points = new Cvec3f[12];
+	Cvec3f *points = new Cvec3f[19];
 
 	points[0] = Cvec3f(-1, phi, 0);		//Top-left
 	points[1] = Cvec3f(1, phi, 0);		//Top-right
@@ -331,12 +331,21 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 	points[10] = Cvec3f(-phi, 0, -1);	//Back-left
 	points[11] = Cvec3f(phi, 0, -1);		//Back-right
 	
+	// Duplicates
+	points[12] = Cvec3f(-phi, 0, -1);
+	points[13] = Cvec3f(0, -1, phi);
+	points[14] = Cvec3f(0, -1, phi);
+	points[15] = Cvec3f(phi, 0, -1);
+	points[16] = Cvec3f(phi, 0, -1);
+	points[17] = Cvec3f(-1, -phi, 0);
+	points[18] = Cvec3f(-1, -phi, 0);
+
 	//Setup tu, tv
-	float textures[][2] = {{0.5,1},{1,0},{0.5,1},{1,0},{0,0},{0,0},{0,0},{0,0},{1,0},{0.5,1},{0,0},{0,0}};
-	//float textures[][2] = {{0,0},{1,1},{0,0},{0,0},{0,1},{0,0},{0,0},{0,0},{0,0},{1,0},{0,0},{0,0}};
+	float textures[][2] = {{0.5,1},{1,0},{0.5,1},{0,0},{0,0},{0,0},{1,0},{0.5,1},{1,0},{0.5,1},{0,0},{1,0},{1,0},{0,0},{0.5,1},{0,0},{0.5,1},{0,0},{1,0}};
+ //float textures[][2] = {{  0  },{ 1 },{  2  },{ 3 },{ 4 },{ 5 },{ 6 },{  7  },{ 8 },{  9  },{ 10},{ 11},{ 12},{ 13},{  14 },{ 15},{  16 },{ 17},{ 18}};
 
 	//Load all points into vtxIter
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 19; i++)
 	{
 		float x = points[i][0];
 		float y = points[i][1];
@@ -359,49 +368,24 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 						0,8,4,
 						0,4,1,
 						0,1,5,
-						0,5,10,
+						0,5,12,
 
 						8,10,2, //Middle
-						8,2,6,
-						8,6,4,
+						8,2,13,
+						8,14,4,
 						9,4,6,
 						9,1,4,
-						9,11,1,
-						5,1,11,
+						9,15,1,
+						5,1,16,
 						5,11,7,
-						5,7,10,
-						10,7,2,
+						5,7,12,
+						12,7,17,
 
 						3,6,2, //Bottom
 						3,9,6,
 						3,11,9,
 						3,7,11,
-						3,2,7
-					 };
-
-	// Isolating one triangle
-	int temp2[] = {0,6,9, //Top
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-
-						1,1,1, //Middle
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1,
-
-						1,1,1, //Bottom
-						1,1,1,
-						1,1,1,
-						1,1,1,
-						1,1,1
+						3,18,7
 					 };
 
 	for (int i = 0; i < 60; i++)

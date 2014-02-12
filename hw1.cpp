@@ -516,7 +516,7 @@ static Geometry* initTriangles()
 static Geometry* initIcosahedron() 
 {
   int ibLen = 60;
-  int vbLen = 12;
+  int vbLen = 19;
 
   // Temporary storage for cube geometry
   vector<GenericVertex> vtx(vbLen);
