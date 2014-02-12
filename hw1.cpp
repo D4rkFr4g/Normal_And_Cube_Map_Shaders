@@ -860,13 +860,18 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
     float y = 0;
     float z = 0;
     float invRootThree = 1/sqrt((float)3);
+	 float phi = (1 + sqrt(5.0)) / 2.0;
+	 float radius = 1 / sqrt(1 + pow(phi,2));
+
+	 //cout << "radius = " << radius << endl;
+	 //cout << "invRootThree = " << invRootThree << endl;
 
     pixels.resize(width * height);
     for (int row = height - 1; row >= 0; row--) {
         for (int l = 0; l < width; l++) {
             PackedPixel &p = pixels[row * width + l];
-            x = invRootThree * ((float)(row - width/2)/(width/2));
-            y = invRootThree * ((float)(l - height/2)/(height/2));
+            x = radius * ((float)(row - width/2)/(width/2));
+            y = radius * ((float)(l - height/2)/(height/2));
             z = sqrt(1 - x*x - y*y);
             p.r = (unsigned char)(255 * (x + 1)/2);
             p.g = (unsigned char)(255 * (y + 1)/2);
