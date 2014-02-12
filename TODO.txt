@@ -1,7 +1,5 @@
-- Initially, each face of the polyhedra should be textured with an image of one of the team members on the project. 
-  Recall the book's code for your first assignment last semester has a way to read in an image file. 
-  Now imagine three vertices of an equilateral triangle on a sphere. A ray from the origin through the triangle will hit exactly one point on the sphere. 
-- That point on the sphere will have a normal, and we can use this to make the triangle into a normal map. 
+- Now imagine three vertices of an equilateral triangle on a sphere. A ray from the origin through the triangle will hit exactly one point on the sphere. 
+  That point on the sphere will have a normal, and we can use this to make the triangle into a normal map. 
 - When the user hits the n key, I want you to draw the scene with a light source 5 units above the viewing position, 
   where the icosahedron is a shiny red material and where the normals used come from the normal map. 
 - Finally, I want you to create a background image for cube map purposes. 
@@ -13,8 +11,6 @@ Point Breakdown
 Code contributed to existing project is well-documented and follows the SJSU CS Department guidelines for C++ (Undergrad version). (2pts)
 Two paper summaries (1pt each) (Grad Version) (2pts)
 
-Isocahedron renders as described (1pt)
-Initial textures one of your group members faces. (1pt)
 GLUT handling of n and c keys. (1pt each)
 When the n key is hit, this icosahedron is drawn with a red shiny material and lighting as described (1pt)
 Normals for this rendering come from a normal map as described (1pt)
