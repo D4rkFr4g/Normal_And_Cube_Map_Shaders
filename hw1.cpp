@@ -800,56 +800,13 @@ static void keyboard(const unsigned char key, const int x, const int y)
         break;
 	  }
 	
-		if (key == 'a')
+		if (key == 'n')
 		{
-			mode = ASPECT;
+			g_rigidBodies[0].children[0]->material = SHINY;
 		}
-		else if (key == 'f')
+		else if (key == 'c')
 		{
-			mode = FOV;
-		}
-		else if (key == 'z')
-		{
-			mode = ZAXIS;
-		}
-		else if (key == 'b')
-		{
-		}
-		else if (key == '-')
-		{
-			if (mode == ASPECT)
-			{
-				//g_aspect -= 0.1;
-				//g_windowWidth = g_aspect * g_windowHeight;
-			}
-			else if (mode == FOV)
-			{
-				//g_frustFovY -= 0.1;
-			}
-			else if (mode == ZAXIS)
-			{
-				// Move camera along the positive z-axis
-				Cvec3 cameraTrans = g_eyeRbt.getTranslation();
-				g_eyeRbt.setTranslation(cameraTrans + Cvec3(0,0,1));
-			}
-		}
-		else if (key == '=')
-		{
-			if (mode == ASPECT)
-			{
-				//g_aspect += 0.1;
-				//g_windowWidth = g_aspect * g_windowHeight;
-			}
-			else if (mode == FOV)
-			{
-				//g_frustFovY += 0.1;
-			}
-			else if (mode == ZAXIS)
-			{
-				// Move camera along the negative z-axis
-				Cvec3 cameraTrans = g_eyeRbt.getTranslation();
-				g_eyeRbt.setTranslation(cameraTrans - Cvec3(0,0,1));
-			}
+			
 		}
 	}
 
