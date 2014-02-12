@@ -142,18 +142,18 @@ struct ShaderState {
 
 };
 
-static const int g_numShaders = 2;
+static const int g_numShaders = 5;
 static const char * const g_shaderFiles[g_numShaders][2] = {
-	//{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
-	//{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
-	//{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/texture-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/normal-gl3.fshader"}
 };
 static const char * const g_shaderFilesGl2[g_numShaders][2] = {
-	//{"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
-	//{"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
-	//{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/normal-gl2.fshader"}
 };
@@ -287,13 +287,13 @@ struct RigidBody
 		RigTForm respectFrame = invEyeRbt;
 		draw(respectFrame, Matrix4());
 	}
-
+/*
 	void drawRigidBody(RigTForm invEyeRbt, const ShaderState& state)
 	{
 		RigTForm respectFrame = invEyeRbt;
 		draw(respectFrame, Matrix4(), state);
 	}
-
+*/
 	void draw(RigTForm respectFrame_, Matrix4 respectScale_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -320,8 +320,7 @@ struct RigidBody
 		}
 		
 	}
-
-	
+/*	
 	void draw(RigTForm respectFrame_, Matrix4 respectScale_, const ShaderState& state)
 	{
 		const ShaderState& curSS = state;
@@ -349,7 +348,7 @@ struct RigidBody
 		
 	}
 	
-
+*/
 	void draw(Matrix4 respectFrame_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -564,7 +563,6 @@ static void initDie()
 
 	RigidBody *die;
 	die = buildIcosahedron(); //icosahedron
-	//die = new RigidBody(RigTForm(), Matrix4(), NULL, initCubes(), Cvec3(.5, .5, .5), SOLID); //cube
 	g_rigidBodies[0] = *die;
 
 	glutPostRedisplay();
@@ -659,7 +657,7 @@ static void drawStuff()
 	// Draw all Rigid body objects
 	for (int i = 0; i < g_numOfObjects; i++)
 	{
-		g_rigidBodies[i].drawRigidBody(invEyeRbt, curSS);
+		g_rigidBodies[i].drawRigidBody(invEyeRbt);
 	}
 }
 /*-----------------------------------------------*/
@@ -792,13 +790,14 @@ static void keyboard(const unsigned char key, const int x, const int y)
 				g_activeShader ^= 1;
 				break;
 			case 't':
-				cout << "Current material: " << g_rigidBodies[0].material << endl;
+				cout << "Current material: " << g_rigidBodies[0].children[0]->material << endl;
 
             g_activeShader++;
             if(g_activeShader >= g_numShaders) {
                 g_activeShader = 0;
             }
-        break;
+				g_rigidBodies[0].children[0]->material = g_activeShader;
+				break;
         break;
 	  }
 	
