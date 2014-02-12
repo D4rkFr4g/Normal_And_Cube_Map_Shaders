@@ -90,7 +90,7 @@ static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
 static float g_treeHeight = 15;
 static float g_lastTreeX = 0;
-static const int g_numOfObjects = 1; //Number of objects to be drawn
+static const int g_numOfObjects = 2; //Number of objects to be drawn
 static bool isKeyboardActive = true;
 static int mode = ASPECT;
 
@@ -421,6 +421,7 @@ static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector
 }
 
 /*-----------------------------------------------*/
+/*
 static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
 {
 	float temp = dot(vectorOne, vectorTwo);
@@ -435,14 +436,16 @@ static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
 
 	return temp;
 }
-
+*/
 /*-----------------------------------------------*/
+/*
 static float lookAt(Cvec3 eyePosition, Cvec3 upPosition)
 {
 	return -(90 - angleBetween(eyePosition, upPosition));
 }
-
+*/
 /*-----------------------------------------------*/
+/*
 static void lookAtOrigin()
 {
 	// Set angle to look at the origin
@@ -450,7 +453,7 @@ static void lookAtOrigin()
 	Cvec3 up = Cvec3(0,1,0);
 	g_eyeRbt.setRotation(Quat().makeXRotation(lookAt(eye,up)));
 }
-
+*/
 /*-----------------------------------------------*/
 static void initCamera()
 {
@@ -555,6 +558,19 @@ static Geometry* initCylinders()
 	return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+static RigidBody* buildTriangle()
+{
+	RigTForm rigTemp = RigTForm(Cvec3(0, (g_treeHeight * 0.25) * 0.5, 1));
+	Matrix4 scaleTemp = Matrix4();
+	
+	// Make Triangle
+	RigidBody *triangle = new RigidBody(rigTemp, Matrix4(), NULL, initTriangles(), Cvec3(0, 1, 0), TEXTURE);
+	triangle->isVisible = false;
+	triangle->name = "Triangle";
+
+	return triangle;
+}
+/*-----------------------------------------------*/
 static void initDie()
 {
 	/* PURPOSE:		Creates a Icosahedron die with an image textured surface 
@@ -564,6 +580,11 @@ static void initDie()
 	RigidBody *die;
 	die = buildIcosahedron(); //icosahedron
 	g_rigidBodies[0] = *die;
+
+	// Test code to be removed
+	RigidBody *triangle;
+	triangle = buildTriangle();
+	g_rigidBodies[1] = *triangle;
 
 	glutPostRedisplay();
 }

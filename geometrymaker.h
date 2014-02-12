@@ -349,7 +349,7 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 		*vtxIter = GenericVertex(
 			x, y, z,
 			n[0], n[1], n[2],
-			textures[i][0], textures[i][0],
+			textures[i][0], textures[i][1],
 			t[0], t[1], t[2],
 			b[0], b[1], b[2]);
 		++vtxIter;
