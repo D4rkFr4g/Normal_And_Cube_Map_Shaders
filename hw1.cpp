@@ -802,10 +802,12 @@ static void keyboard(const unsigned char key, const int x, const int y)
 		if (key == 'n')
 		{
 			g_rigidBodies[0].children[0]->material = SHINY;
+			g_rigidBodies[0].children[0]->color = Cvec3(1, 0, 0);
 		}
 		else if (key == 'c')
 		{
-			
+			g_rigidBodies[0].children[0]->material = DIFFUSE;		// Will be Cubemap shader eventually
+			g_rigidBodies[0].children[0]->color = Cvec3(0.8, 0.8, 0.8);
 		}
 	}
 
