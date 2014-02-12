@@ -41,7 +41,7 @@
 
 #define M_PI 3.1415926535897932384626433832795;
 enum {ASPECT, FOV, ZAXIS};
-enum {DIFFUSE, SOLID, SHINY, TEXTURE};
+enum {DIFFUSE, SOLID, SHINY, TEXTURE, NORMAL};
 
 
 using namespace std;      // for string, vector, iostream, and other standard C++ stuff
@@ -103,6 +103,7 @@ struct ShaderState {
   GLint h_uModelViewMatrix;
   GLint h_uNormalMatrix;
   GLint h_uTexUnit0;
+  GLint h_uTexUnit1;
   GLint h_uColor;
 
   // Handles to vertex attributes
@@ -110,6 +111,7 @@ struct ShaderState {
   GLint h_aNormal;
   GLint h_aTangent;
   GLint h_aTexCoord0;
+  GLint h_aTexCoord1;
 
   ShaderState(const char* vsfn, const char* fsfn) {
     readAndCompileShader(program, vsfn, fsfn);
@@ -124,12 +126,14 @@ struct ShaderState {
     h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
     h_uColor = safe_glGetUniformLocation(h, "uColor");
 	 h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
+	 h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
 
     // Retrieve handles to vertex attributes
     h_aPosition = safe_glGetAttribLocation(h, "aPosition");
     h_aNormal = safe_glGetAttribLocation(h, "aNormal");
 	 h_aTangent = safe_glGetAttribLocation(h, "aTangent");
 	 h_aTexCoord0 = safe_glGetAttribLocation(h, "aTexCoord0");
+	 h_aTexCoord1 = safe_glGetAttribLocation(h, "aTexCoord1");
 
     if (!g_Gl2Compatible)
       glBindFragDataLocation(h, 0, "fragColor");
@@ -138,53 +142,30 @@ struct ShaderState {
 
 };
 
-static const int g_numShaders = 4;
+static const int g_numShaders = 2;
 static const char * const g_shaderFiles[g_numShaders][2] = {
-	{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
-	{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
-	{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
-	{"./shaders/basic-gl3.vshader", "./shaders/texture-gl3.fshader"}
+	//{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
+	//{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
+	//{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/texture-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/normal-gl3.fshader"}
 };
 static const char * const g_shaderFilesGl2[g_numShaders][2] = {
-  {"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
-  {"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
-	{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
-	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"}
+	//{"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
+	//{"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
+	//{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/normal-gl2.fshader"}
 };
 static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
-static shared_ptr<GlTexture> g_tex0;
+static shared_ptr<GlTexture> g_tex0, g_tex1;
 
 // --------- Geometry
 
 // Macro used to obtain relative offset of a field within a struct
 #define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
 
-/*
-// A vertex with floating point position and normal
-struct VertexPN {
-  Cvec3f p, n, t;
 
-  VertexPN() {}
-  VertexPN(float x, float y, float z,
-           float nx, float ny, float nz,
-			  float tx, float ty, float tz)
-    : p(x,y,z), n(nx, ny, nz), t(tx, ty, tz)
-  {}
-
-  // Define copy constructor and assignment operator from GenericVertex so we can
-  // use make* functions from geometrymaker.h
-  VertexPN(const GenericVertex& v) {
-    *this = v;
-  }
-
-  VertexPN& operator = (const GenericVertex& v) {
-    p = v.pos;
-    n = v.normal;
-	 t = v.tangent;
-    return *this;
-  }
-};
-*/
 struct Geometry {
   GlBufferObject vbo, ibo, texVbo;
   int vboLen, iboLen;
@@ -210,6 +191,7 @@ struct Geometry {
     safe_glEnableVertexAttribArray(curSS.h_aNormal);
 	 safe_glEnableVertexAttribArray(curSS.h_aTangent);
 	 safe_glEnableVertexAttribArray(curSS.h_aTexCoord0);
+	 safe_glEnableVertexAttribArray(curSS.h_aTexCoord1);
 
     // bind vbo
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -218,7 +200,7 @@ struct Geometry {
 	 safe_glVertexAttribPointer(curSS.h_aTangent, 3, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
 	 glBindBuffer(GL_ARRAY_BUFFER, texVbo);
 	 safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-
+	 safe_glVertexAttribPointer(curSS.h_aTexCoord1, 2, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
     // bind ibo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
@@ -230,6 +212,7 @@ struct Geometry {
     safe_glDisableVertexAttribArray(curSS.h_aNormal);
 	 safe_glDisableVertexAttribArray(curSS.h_aTangent);
 	 safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
+     safe_glDisableVertexAttribArray(curSS.h_aTexCoord1);
   }
 
 	void draw(const ShaderState& curSS, Matrix4 MVM)
@@ -305,6 +288,12 @@ struct RigidBody
 		draw(respectFrame, Matrix4());
 	}
 
+	void drawRigidBody(RigTForm invEyeRbt, const ShaderState& state)
+	{
+		RigTForm respectFrame = invEyeRbt;
+		draw(respectFrame, Matrix4(), state);
+	}
+
 	void draw(RigTForm respectFrame_, Matrix4 respectScale_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -332,6 +321,35 @@ struct RigidBody
 		
 	}
 
+	
+	void draw(RigTForm respectFrame_, Matrix4 respectScale_, const ShaderState& state)
+	{
+		const ShaderState& curSS = state;
+		safe_glUniform3f(curSS.h_uColor, color[0], color[1], color[2]);
+	
+		// Draw Parent
+		RigTForm respectFrame = respectFrame_ * rtf;
+		Matrix4 respectScale = respectScale_ * scale;
+		Matrix4 MVM = RigTForm::makeTRmatrix(respectFrame, respectScale);
+
+		if (isVisible)
+		{
+			if (geom != NULL)
+				geom->draw(curSS, MVM);
+		}
+
+		//Draw Children
+		if (isChildVisible)
+		{
+			for (int i = 0; i < numOfChildren; i++)
+			{
+				children[i]->draw(respectFrame, respectScale, state);
+			}
+		}
+		
+	}
+	
+
 	void draw(Matrix4 respectFrame_)
 	{
 		const ShaderState& curSS = setupShader(material);
@@ -354,6 +372,7 @@ struct RigidBody
 		}
 	}
 };
+
 /*-----------------------------------------------*/
 // Vertex buffer and index buffer associated with the ground and cube geometry
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_triangle;
@@ -367,6 +386,7 @@ static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid B
 
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 /*-----------------------------------------------*/
+
 static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector)
 {
 	Cvec3f x, y, z, w;
@@ -400,6 +420,7 @@ static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector
 
 	return Matrix4(m, true);
 }
+
 /*-----------------------------------------------*/
 static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
 {
@@ -415,11 +436,13 @@ static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
 
 	return temp;
 }
+
 /*-----------------------------------------------*/
 static float lookAt(Cvec3 eyePosition, Cvec3 upPosition)
 {
 	return -(90 - angleBetween(eyePosition, upPosition));
 }
+
 /*-----------------------------------------------*/
 static void lookAtOrigin()
 {
@@ -428,6 +451,7 @@ static void lookAtOrigin()
 	Cvec3 up = Cvec3(0,1,0);
 	g_eyeRbt.setRotation(Quat().makeXRotation(lookAt(eye,up)));
 }
+
 /*-----------------------------------------------*/
 static void initCamera()
 {
@@ -444,6 +468,7 @@ static void initCamera()
 	//g_frustNear = z / 2.0;
 	//g_frustFar = (3 * z) / 2.0;
 }
+
 /*-----------------------------------------------*/
 static void initGround() {
   // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
@@ -456,6 +481,7 @@ static void initGround() {
   unsigned short idx[] = {0, 1, 2, 0, 2, 3};
   g_ground.reset(new Geometry(&vtx[0], &idx[0], 4, 6));
 }
+
 /*-----------------------------------------------*/
 static Geometry* initCubes() 
 {
@@ -469,6 +495,7 @@ static Geometry* initCubes()
   makeCube(1, vtx.begin(), idx.begin());
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
+
 /*-----------------------------------------------*/
 static Geometry* initTriangles() 
 {
@@ -482,6 +509,7 @@ static Geometry* initTriangles()
   makeTriangle(vtx.begin(), idx.begin());
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
+
 /*-----------------------------------------------*/
 static Geometry* initIcosahedron() 
 {
@@ -535,7 +563,8 @@ static void initDie()
 	*/
 
 	RigidBody *die;
-	die = buildIcosahedron();
+	die = buildIcosahedron(); //icosahedron
+	//die = new RigidBody(RigTForm(), Matrix4(), NULL, initCubes(), Cvec3(.5, .5, .5), SOLID); //cube
 	g_rigidBodies[0] = *die;
 
 	glutPostRedisplay();
@@ -630,7 +659,7 @@ static void drawStuff()
 	// Draw all Rigid body objects
 	for (int i = 0; i < g_numOfObjects; i++)
 	{
-		g_rigidBodies[i].drawRigidBody(invEyeRbt);
+		g_rigidBodies[i].drawRigidBody(invEyeRbt, curSS);
 	}
 }
 /*-----------------------------------------------*/
@@ -762,6 +791,15 @@ static void keyboard(const unsigned char key, const int x, const int y)
 			case 'm':
 				g_activeShader ^= 1;
 				break;
+			case 't':
+				cout << "Current material: " << g_rigidBodies[0].material << endl;
+
+            g_activeShader++;
+            if(g_activeShader >= g_numShaders) {
+                g_activeShader = 0;
+            }
+        break;
+        break;
 	  }
 	
 		if (key == 'a')
@@ -870,6 +908,37 @@ static void initLights()
 {
 	g_light1 = Cvec3(g_lastTreeX, g_treeHeight + 5.0, 0);
 }
+
+static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
+{
+    int width = 512, height = 512;
+    vector<PackedPixel> pixels;
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    float invRootThree = 1/sqrt((float)3);
+
+    pixels.resize(width * height);
+    for (int row = height - 1; row >= 0; row--) {
+        for (int l = 0; l < width; l++) {
+            PackedPixel &p = pixels[row * width + l];
+            x = invRootThree * ((float)(row - width/2)/(width/2));
+            y = invRootThree * ((float)(l - height/2)/(height/2));
+            z = sqrt(1 - x*x - y*y);
+            p.r = (unsigned char)(255 * (x + 1)/2);
+            p.g = (unsigned char)(255 * (y + 1)/2);
+            p.b = (unsigned char)(255 * (z + 1)/2);
+			//cout << "x: " << x << "\ty: " << y << "\tz: " << z << endl; // They don't look wrong, it just doesn't work.
+        }
+    }
+
+    glActiveTexture(type);
+    glBindTexture(GL_TEXTURE_2D, texHandle);
+    glTexImage2D(GL_TEXTURE_2D, 0, g_Gl2Compatible ? GL_RGB : GL_SRGB, width,
+                 height, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
+    checkGlErrors();
+}
+
 /*-----------------------------------------------*/
 static void loadTexture(GLuint texHandle, const char *ppmFilename) {
     int texWidth, texHeight;
@@ -883,6 +952,8 @@ static void loadTexture(GLuint texHandle, const char *ppmFilename) {
        GL_RGB : GL_SRGB, texWidth, texHeight, 0, GL_RGB, 
                 GL_UNSIGNED_BYTE, &pixData[0]);
     checkGlErrors();
+
+	
 }
 /*-----------------------------------------------*/
 static void initTextures() {
@@ -896,8 +967,19 @@ static void initTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    
+
+	g_tex1.reset(new GlTexture());
+
+    loadSphereNormalTexture(GL_TEXTURE1, *g_tex1);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, *g_tex1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
+
 /*-----------------------------------------------*/
 int main(int argc, char * argv[]) {
   try {

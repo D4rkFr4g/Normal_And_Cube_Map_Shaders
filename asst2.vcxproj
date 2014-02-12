@@ -116,6 +116,8 @@
     <None Include="shaders\basic-gl3.vshader" />
     <None Include="shaders\diffuse-gl2.fshader" />
     <None Include="shaders\diffuse-gl3.fshader" />
+    <None Include="shaders\normal-gl2.fshader" />
+    <None Include="shaders\normal-gl3.fshader" />
     <None Include="shaders\shiny-gl2.fshader" />
     <None Include="shaders\shiny-gl3.fshader" />
     <None Include="shaders\solid-gl2.fshader" />
