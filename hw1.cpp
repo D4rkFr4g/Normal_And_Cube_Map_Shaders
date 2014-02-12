@@ -866,6 +866,11 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 	 //cout << "radius = " << radius << endl;
 	 //cout << "invRootThree = " << invRootThree << endl;
 
+	 // Open output file and initialize
+	 FILE* fp;
+	 fopen_s(&fp, "normal.ppm", "wb");
+	 (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
+
     pixels.resize(width * height);
     for (int row = height - 1; row >= 0; row--) {
         for (int l = 0; l < width; l++) {
@@ -877,8 +882,20 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
             p.g = (unsigned char)(255 * (y + 1)/2);
             p.b = (unsigned char)(255 * (z + 1)/2);
 			//cout << "x: " << x << "\ty: " << y << "\tz: " << z << endl; // They don't look wrong, it just doesn't work.
+
+				static unsigned char color[3];
+				color[0] = p.r;
+				color[1] = p.g;
+				color[2] = p.b;
+
+				(void) fwrite(color, 1, 3, fp);
         }
     }
+
+	 //Close File
+	 (void) fclose(fp);
+
+	 
 
     glActiveTexture(type);
     glBindTexture(GL_TEXTURE_2D, texHandle);
