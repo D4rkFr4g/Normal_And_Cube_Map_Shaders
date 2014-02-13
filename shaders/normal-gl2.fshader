@@ -3,6 +3,7 @@ uniform sampler2D uTexUnit1;
 
 varying vec3 vPosition;
 varying vec2 vTexCoord1;
+varying vec3 vNormal;
 
 void main() 
 {
@@ -11,7 +12,7 @@ void main()
     vec3 h = normalize(toV + toLight);
 
     vec4 texNormal = texture2D(uTexUnit1, vTexCoord1);
-    vec3 scaledTexNormal = normalize(2.0 * vec3(texNormal)  - vec3(1., 1., 1.));
+    vec3 scaledTexNormal = normalize(2.0 * vec3(texNormal) + vNormal);
 
     float specular = pow(max(0.0, dot(h, scaledTexNormal)), 64.0);
     float diffuse = max(0.0, dot(vec3(scaledTexNormal), toLight));

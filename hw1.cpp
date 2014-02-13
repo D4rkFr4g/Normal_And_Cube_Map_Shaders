@@ -64,7 +64,7 @@ using namespace tr1; // for shared_ptr
 // To complete the assignment you only need to edit the shader files that get
 // loaded
 // ----------------------------------------------------------------------------
-static const bool g_Gl2Compatible = false;
+static const bool g_Gl2Compatible = true;
 
 // Forward Declarations
 struct RigidBody;
@@ -104,6 +104,7 @@ struct ShaderState {
   GLint h_uNormalMatrix;
   GLint h_uTexUnit0;
   GLint h_uTexUnit1;
+  GLint h_uTexUnit2;
   GLint h_uColor;
 
   // Handles to vertex attributes
@@ -112,6 +113,7 @@ struct ShaderState {
   GLint h_aTangent;
   GLint h_aTexCoord0;
   GLint h_aTexCoord1;
+        //no texCoord2
 
   ShaderState(const char* vsfn, const char* fsfn) {
     readAndCompileShader(program, vsfn, fsfn);
@@ -127,6 +129,7 @@ struct ShaderState {
     h_uColor = safe_glGetUniformLocation(h, "uColor");
 	 h_uTexUnit0 = safe_glGetUniformLocation(h, "uTexUnit0");
 	 h_uTexUnit1 = safe_glGetUniformLocation(h, "uTexUnit1");
+     h_uTexUnit2 = safe_glGetUniformLocation(h, "uTexUnit2");
 
     // Retrieve handles to vertex attributes
     h_aPosition = safe_glGetAttribLocation(h, "aPosition");
@@ -141,23 +144,25 @@ struct ShaderState {
   }
 };
 
-static const int g_numShaders = 5;
+static const int g_numShaders = 6;
 static const char * const g_shaderFiles[g_numShaders][2] = {
 	{"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/shiny-gl3.fshader"},
 	{"./shaders/basic-gl3.vshader", "./shaders/texture-gl3.fshader"},
-	{"./shaders/basic-gl3.vshader", "./shaders/normal-gl3.fshader"}
+	{"./shaders/basic-gl3.vshader", "./shaders/normal-gl3.fshader"},
+	{"./shaders/basic-gl3.vshader", "./shaders/cube-gl3.fshader"}
 };
 static const char * const g_shaderFilesGl2[g_numShaders][2] = {
 	{"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/shiny-gl2.fshader"},
 	{"./shaders/basic-gl2.vshader", "./shaders/texture-gl2.fshader"},
-	{"./shaders/basic-gl2.vshader", "./shaders/normal-gl2.fshader"}
+	{"./shaders/basic-gl2.vshader", "./shaders/normal-gl2.fshader"},
+	{"./shaders/basic-gl2.vshader", "./shaders/cube-gl2.fshader"}
 };
 static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
-static shared_ptr<GlTexture> g_tex0, g_tex1;
+static shared_ptr<GlTexture> g_tex0, g_tex1, g_tex2;
 
 // --------- Geometry
 
@@ -200,7 +205,7 @@ struct Geometry {
 	 glBindBuffer(GL_ARRAY_BUFFER, texVbo);
 	 safe_glVertexAttribPointer(curSS.h_aTexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
 	 safe_glVertexAttribPointer(curSS.h_aTexCoord1, 2, GL_FLOAT, GL_FALSE, sizeof(GenericVertex), FIELD_OFFSET(GenericVertex, tex));
-    // bind ibo
+     // bind ibo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
     // draw!
@@ -212,7 +217,7 @@ struct Geometry {
 	 safe_glDisableVertexAttribArray(curSS.h_aTangent);
 	 safe_glDisableVertexAttribArray(curSS.h_aTexCoord0);
      safe_glDisableVertexAttribArray(curSS.h_aTexCoord1);
-  }
+    }
 
 	void draw(const ShaderState& curSS, Matrix4 MVM)
 	{
@@ -659,6 +664,7 @@ static const ShaderState& setupShader(int material)
 
 	safe_glUniform1i(curSS.h_uTexUnit0, 0);
 	safe_glUniform1i(curSS.h_uTexUnit1, 1);
+    safe_glUniform1i(curSS.h_uTexUnit2, 2);
 
 	// Build & send proj. matrix to vshader
 	const Matrix4 projmat = makeProjectionMatrix();
@@ -919,6 +925,44 @@ static void loadTexture(GLuint type, GLuint texHandle, const char *ppmFilename) 
                 GL_UNSIGNED_BYTE, &pixData[0]);
     checkGlErrors();
 }
+
+
+static void loadCubeTexture(GLuint type, GLuint texHandle,
+    const char *ppmFilename1, const char *ppmFilename2,
+    const char *ppmFilename3, const char *ppmFilename4,
+    const char *ppmFilename5, const char *ppmFilename6)
+{
+    int texWidth, texHeight;
+    vector<PackedPixel> pixData1, pixData2, pixData3,
+        pixData4, pixData5, pixData6;
+
+    ppmRead(ppmFilename1, texWidth, texHeight, pixData1);
+    ppmRead(ppmFilename2, texWidth, texHeight, pixData2);
+    ppmRead(ppmFilename3, texWidth, texHeight, pixData3);
+    ppmRead(ppmFilename4, texWidth, texHeight, pixData4);
+    ppmRead(ppmFilename5, texWidth, texHeight, pixData5);
+    ppmRead(ppmFilename6, texWidth, texHeight, pixData6);
+
+    glActiveTexture(type);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texHandle);
+
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData1[0]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData2[0]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData3[0]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData4[0]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData5[0]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0,
+        GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData6[0]);
+    checkGlErrors();
+}
+
+
+
 /*-----------------------------------------------*/
 static void initTextures() {
     g_tex0.reset(new GlTexture());
@@ -942,6 +986,20 @@ static void initTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    g_tex2.reset(new GlTexture());
+
+    loadCubeTexture(GL_TEXTURE2, *g_tex2, "one.ppm", "two.ppm",
+        "three.ppm", "four.ppm", "five.ppm", "six.ppm");
+
+    glEnable(GL_TEXTURE_CUBE_MAP);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, *g_tex2);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
 }
 
 /*-----------------------------------------------*/

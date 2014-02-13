@@ -61,6 +61,12 @@
     <None Include="shaders\normal-gl3.fshader">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\cube-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\cube-gl3.fshader">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
