@@ -745,7 +745,7 @@ static void keyboard(const unsigned char key, const int x, const int y)
 		else if (key == 'c')
 		{
 			g_rigidBodies[0].children[0]->material = CUBE;
-			g_rigidBodies[0].children[0]->color = Cvec3(0.7, 0.7, 0.7);
+			g_rigidBodies[0].children[0]->color = Cvec3(0.5, 0.5, 0.5);
 		}
 	}
 

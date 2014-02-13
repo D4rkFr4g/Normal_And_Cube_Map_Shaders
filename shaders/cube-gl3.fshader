@@ -19,7 +19,7 @@ void main(void)
     vec3 normal = normalize(vNormal);
     vec3 reflected = reflect(normalize(vec3(-vPosition)), normal);
 
-    vec4 texColor0 = textureCube(uTexUnit2, reflected) / 5.0;
+    vec4 texColor0 = textureCube(uTexUnit2, reflected) / 3.0;
 
     float diffuse = max(0.0, dot(normal, tolight));
     vec3 intensity = (uColor * diffuse) + vec3(texColor0);
