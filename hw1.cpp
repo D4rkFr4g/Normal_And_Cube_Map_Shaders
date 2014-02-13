@@ -41,7 +41,7 @@
 
 #define M_PI 3.1415926535897932384626433832795;
 enum {ASPECT, FOV, ZAXIS};
-enum {DIFFUSE, SOLID, SHINY, TEXTURE, NORMAL};
+enum {DIFFUSE, SOLID, SHINY, TEXTURE, NORMAL, CUBE};
 
 
 using namespace std;      // for string, vector, iostream, and other standard C++ stuff
@@ -64,7 +64,7 @@ using namespace tr1; // for shared_ptr
 // To complete the assignment you only need to edit the shader files that get
 // loaded
 // ----------------------------------------------------------------------------
-static const bool g_Gl2Compatible = true;
+static const bool g_Gl2Compatible = false;
 
 // Forward Declarations
 struct RigidBody;
@@ -83,13 +83,10 @@ static const float g_groundSize = 20.0;   // half the ground length
 
 static int g_windowWidth = 512;
 static int g_windowHeight = 512;
-//static double g_aspect = 5.5;//g_windowWidth / g_windowHeight;
 static bool g_mouseClickDown = false;    // is the mouse button pressed
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
-//static float g_treeHeight = 15;
-//static float g_lastTreeX = 0;
 static const int g_numOfObjects = 1; //Number of objects to be drawn
 static bool isKeyboardActive = true;
 //static int mode = ASPECT;
@@ -355,7 +352,7 @@ static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid B
 
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 /*-----------------------------------------------*/
-
+/*
 static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector)
 {
 	Cvec3f x, y, z, w;
@@ -389,40 +386,6 @@ static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector
 
 	return Matrix4(m, true);
 }
-
-/*-----------------------------------------------*/
-/*
-static float angleBetween(Cvec3 vectorOne, Cvec3 vectorTwo)
-{
-	float temp = dot(vectorOne, vectorTwo);
-	float vOneNorm = norm(vectorOne);
-	float vTwoNorm = norm(vectorTwo);
-	temp = (temp / (vOneNorm * vTwoNorm));
-	temp = acos(temp) * 180;
-	temp /= M_PI;
-
-	//cout << "angle = " << temp << "\n";
-	//Matrix4::print(Matrix4::makeXRotation(temp));
-
-	return temp;
-}
-*/
-/*-----------------------------------------------*/
-/*
-static float lookAt(Cvec3 eyePosition, Cvec3 upPosition)
-{
-	return -(90 - angleBetween(eyePosition, upPosition));
-}
-*/
-/*-----------------------------------------------*/
-/*
-static void lookAtOrigin()
-{
-	// Set angle to look at the origin
-	Cvec3 eye = g_eyeRbt.getTranslation();
-	Cvec3 up = Cvec3(0,1,0);
-	g_eyeRbt.setRotation(Quat().makeXRotation(lookAt(eye,up)));
-}
 */
 /*-----------------------------------------------*/
 static void initCamera()
@@ -440,7 +403,6 @@ static void initCamera()
 	//g_frustNear = z / 2.0;
 	//g_frustFar = (3 * z) / 2.0;
 }
-
 /*-----------------------------------------------*/
 static void initGround() {
   // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
@@ -453,7 +415,6 @@ static void initGround() {
   unsigned short idx[] = {0, 1, 2, 0, 2, 3};
   g_ground.reset(new Geometry(&vtx[0], &idx[0], 4, 6));
 }
-
 /*-----------------------------------------------*/
 static Geometry* initCubes() 
 {
@@ -467,7 +428,6 @@ static Geometry* initCubes()
   makeCube(1, vtx.begin(), idx.begin());
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
-
 /*-----------------------------------------------*/
 static Geometry* initTriangles() 
 {
@@ -481,7 +441,6 @@ static Geometry* initTriangles()
   makeTriangle(vtx.begin(), idx.begin());
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
-
 /*-----------------------------------------------*/
 static Geometry* initIcosahedron() 
 {
@@ -527,21 +486,6 @@ static Geometry* initCylinders()
 	makeCylinder(slices, radius, height, vtx.begin(), idx.begin());
 	return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
-/*-----------------------------------------------*/
-/*
-static RigidBody* buildTriangle()
-{
-	RigTForm rigTemp = RigTForm(Cvec3(0, 1, 1));
-	Matrix4 scaleTemp = Matrix4();
-	
-	// Make Triangle
-	RigidBody *triangle = new RigidBody(rigTemp, Matrix4(), NULL, initTriangles(), Cvec3(0, 1, 0), TEXTURE);
-	triangle->isVisible = false;
-	triangle->name = "Triangle";
-
-	return triangle;
-}
-*/
 /*-----------------------------------------------*/
 static void initDie()
 {
@@ -664,7 +608,7 @@ static const ShaderState& setupShader(int material)
 
 	safe_glUniform1i(curSS.h_uTexUnit0, 0);
 	safe_glUniform1i(curSS.h_uTexUnit1, 1);
-    safe_glUniform1i(curSS.h_uTexUnit2, 2);
+   safe_glUniform1i(curSS.h_uTexUnit2, 2);
 
 	// Build & send proj. matrix to vshader
 	const Matrix4 projmat = makeProjectionMatrix();
@@ -800,8 +744,8 @@ static void keyboard(const unsigned char key, const int x, const int y)
 		}
 		else if (key == 'c')
 		{
-			g_rigidBodies[0].children[0]->material = DIFFUSE;		// Will be Cubemap shader eventually
-			g_rigidBodies[0].children[0]->color = Cvec3(0.8, 0.8, 0.8);
+			g_rigidBodies[0].children[0]->material = CUBE;
+			g_rigidBodies[0].children[0]->color = Cvec3(0.7, 0.7, 0.7);
 		}
 	}
 
@@ -854,12 +798,6 @@ static void initGeometry()
 	//initGround();
 }
 /*-----------------------------------------------*/
-/*
-static void initLights()
-{
-	//g_light1 = Cvec3(g_lastTreeX, g_treeHeight + 5.0, 0);
-}
-*/
 static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
 {
     int width = 512, height = 512;
@@ -910,7 +848,6 @@ static void loadSphereNormalTexture(GLuint type, GLuint texHandle)
                  height, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
     checkGlErrors();
 }
-
 /*-----------------------------------------------*/
 static void loadTexture(GLuint type, GLuint texHandle, const char *ppmFilename) {
     int texWidth, texHeight;
@@ -925,8 +862,7 @@ static void loadTexture(GLuint type, GLuint texHandle, const char *ppmFilename) 
                 GL_UNSIGNED_BYTE, &pixData[0]);
     checkGlErrors();
 }
-
-
+/*-----------------------------------------------*/
 static void loadCubeTexture(GLuint type, GLuint texHandle,
     const char *ppmFilename1, const char *ppmFilename2,
     const char *ppmFilename3, const char *ppmFilename4,
@@ -960,9 +896,6 @@ static void loadCubeTexture(GLuint type, GLuint texHandle,
         GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &pixData6[0]);
     checkGlErrors();
 }
-
-
-
 /*-----------------------------------------------*/
 static void initTextures() {
     g_tex0.reset(new GlTexture());
@@ -1001,7 +934,6 @@ static void initTextures() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 }
-
 /*-----------------------------------------------*/
 int main(int argc, char * argv[]) {
   try {
@@ -1019,7 +951,6 @@ int main(int argc, char * argv[]) {
 		initShaders();
 		initCamera();
 		initGeometry();
-		//initLights();
 		initTextures();
 
 		glutMainLoop();
