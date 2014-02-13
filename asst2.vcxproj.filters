@@ -90,6 +90,12 @@
     <None Include="cubemap.ppm">
       <Filter>Images</Filter>
     </None>
+    <None Include="shaders\bg-gl3.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\bg-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">

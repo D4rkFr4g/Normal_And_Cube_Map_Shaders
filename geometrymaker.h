@@ -409,13 +409,13 @@ void makeCubeMap(VtxOutIter vtxIter, IdxOutIter idxIter)
 	points[4] = Cvec3f(halfEdge, halfEdge, halfEdge); //Front TR
 	points[5] = Cvec3f(halfEdge, -halfEdge, halfEdge); //Front BR
 	points[6] = Cvec3f(halfEdge, halfEdge, -halfEdge); //Back TR
-	points[7] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); //Back BR
+	points[7] = Cvec3f(halfEdge, -halfEdge, -halfEdge); //Back BR
 	points[8] = Cvec3f(-halfEdge, halfEdge, -halfEdge); // [0]
 	points[9] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [1]
 	points[10] = Cvec3f(-halfEdge, halfEdge, -halfEdge); // [0]
 	points[11] = Cvec3f(halfEdge, halfEdge, -halfEdge); // [6]
 	points[12] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [1]
-	points[13] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [7]
+	points[13] = Cvec3f(halfEdge, -halfEdge, -halfEdge); // [7]
 	
 	float textures[][2] = {{0,.66},{0,0.33},{.25,.33},{.25,.66},{.5,.66},{.5,.33},{.75,.66},{.75,.33},{1,.66},{1,.33},{.25,1},{.5,1},{.25,0},{.5,0}};
 

@@ -118,6 +118,8 @@
     <None Include="shaders\anisotropy-gl3.fshader" />
     <None Include="shaders\basic-gl2.vshader" />
     <None Include="shaders\basic-gl3.vshader" />
+    <None Include="shaders\bg-gl2.fshader" />
+    <None Include="shaders\bg-gl3.fshader" />
     <None Include="shaders\cube-gl2.fshader" />
     <None Include="shaders\cube-gl3.fshader" />
     <None Include="shaders\diffuse-gl2.fshader" />
