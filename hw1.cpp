@@ -514,6 +514,8 @@ static RigidBody* buildCubeMap()
 	bg->name = "background";
 	bg->isVisible = false;
 
+	//Rotate background
+	bg->rtf.setRotation(Quat::makeZRotation(180) * Quat::makeYRotation(180));
 	return bg;
 }
 /*-----------------------------------------------*/
