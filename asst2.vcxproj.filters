@@ -54,7 +54,6 @@
     <None Include="shaders\texture-gl3.fshader">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="myphoto.ppm" />
     <None Include="shaders\normal-gl2.fshader">
       <Filter>Shaders</Filter>
     </None>
@@ -67,10 +66,34 @@
     <None Include="shaders\cube-gl3.fshader">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="myphoto.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="five.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="four.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="one.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="six.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="three.ppm">
+      <Filter>Images</Filter>
+    </None>
+    <None Include="two.ppm">
+      <Filter>Images</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
       <UniqueIdentifier>{d02f2711-6606-4a40-94b7-1de226edc761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Images">
+      <UniqueIdentifier>{c8f9dffd-7c11-4fd9-bc18-884200e2cd87}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -109,7 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
+    <None Include="five.ppm" />
+    <None Include="four.ppm" />
     <None Include="myphoto.ppm" />
+    <None Include="one.ppm" />
     <None Include="shaders\anisotropy-gl2.fshader" />
     <None Include="shaders\anisotropy-gl3.fshader" />
     <None Include="shaders\basic-gl2.vshader" />
@@ -126,7 +129,10 @@
     <None Include="shaders\solid-gl3.fshader" />
     <None Include="shaders\texture-gl2.fshader" />
     <None Include="shaders\texture-gl3.fshader" />
+    <None Include="six.ppm" />
+    <None Include="three.ppm" />
     <None Include="TODO.txt" />
+    <None Include="two.ppm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
