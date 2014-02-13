@@ -109,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
+    <None Include="cubemap.ppm" />
     <None Include="five.ppm" />
     <None Include="four.ppm" />
     <None Include="myphoto.ppm" />

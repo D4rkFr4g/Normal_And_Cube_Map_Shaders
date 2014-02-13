@@ -70,6 +70,7 @@ static const bool g_Gl2Compatible = false;
 struct RigidBody;
 struct ShaderState;
 static RigidBody* buildIcosahedron();
+static RigidBody* buildCubeMap();
 static const ShaderState& setupShader(int material);
 
 static const float g_frustMinFov = 60.0;  // A minimal of 60 degree field of view
@@ -87,7 +88,7 @@ static bool g_mouseClickDown = false;    // is the mouse button pressed
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
 static int g_activeShader = 0;
-static const int g_numOfObjects = 1; //Number of objects to be drawn
+static const int g_numOfObjects = 2; //Number of objects to be drawn
 static bool isKeyboardActive = true;
 //static int mode = ASPECT;
 
@@ -352,42 +353,6 @@ static RigidBody g_rigidBodies[g_numOfObjects]; // Array that holds each Rigid B
 
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 /*-----------------------------------------------*/
-/*
-static Matrix4 lookAt(Cvec3f eyePosition, Cvec3f lookAtPosition, Cvec3f upVector)
-{
-	Cvec3f x, y, z, w;
-	double m[16];
-
-	//Different from the book but works correctly
-	z = normalize(eyePosition - lookAtPosition);
-	x = normalize(cross(upVector,z));
-	y = cross(z,x);	
-
-	int k = 0;
-
-	for (int i = 0; i < 3; i++)
-	{
-		m[k] = x[i];
-		k++;
-		m[k] = y[i];
-		k++;
-		m[k] = z[i];
-		k++;
-		m[k] = eyePosition[i];
-		k++;
-	}
-
-	m[12] = 0;
-	m[13] = 0;
-	m[14] = 0;
-	m[15] = 1;
-
-	//return Matrix4();
-
-	return Matrix4(m, true);
-}
-*/
-/*-----------------------------------------------*/
 static void initCamera()
 {
 	Cvec3 eye = Cvec3(0.0, 0.0, 10.0);
@@ -455,6 +420,19 @@ static Geometry* initIcosahedron()
   return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+static Geometry* initCubeMap()
+{
+	int ibLen = 36;
+	int vbLen = 14;
+
+  // Temporary storage for cube geometry
+  vector<GenericVertex> vtx(vbLen);
+  vector<unsigned short> idx(ibLen);
+
+  makeCubeMap(vtx.begin(), idx.begin());
+  return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
+}
+/*-----------------------------------------------*/
 static Geometry* initSpheres() 
 {
 	int slices = 20;
@@ -487,6 +465,15 @@ static Geometry* initCylinders()
 	return new Geometry(&vtx[0], &idx[0], vbLen, ibLen);
 }
 /*-----------------------------------------------*/
+static void initBackground()
+{
+	RigidBody *bg;
+	bg = buildCubeMap();
+	g_rigidBodies[1] = *bg;
+
+	glutPostRedisplay();
+}
+/*-----------------------------------------------*/
 static void initDie()
 {
 	/* PURPOSE:		Creates a Icosahedron die with an image textured surface 
@@ -498,6 +485,26 @@ static void initDie()
 	g_rigidBodies[0] = *die;
 
 	glutPostRedisplay();
+}
+/*-----------------------------------------------*/
+static RigidBody* buildCubeMap()
+{
+	/* PURPOSE:		Creates a Cubemap background
+		RETURNS:    RigidBody* that points to the background
+	*/
+
+	float width = -10;
+	float height = -10;
+	float thick = -10;
+
+	RigTForm rigTemp = RigTForm(Cvec3(0, 0, 0));
+	Matrix4 scaleTemp = Matrix4::makeScale(Cvec3(width, height, thick));
+	
+	// Make container
+	RigidBody *bg = new RigidBody(RigTForm(), scaleTemp, NULL, initCubeMap(), Cvec3(0.5, 0.5, 0.5), TEXTURE);
+	bg->name = "background";
+
+	return bg;
 }
 /*-----------------------------------------------*/
 static RigidBody* buildIcosahedron()
@@ -732,7 +739,7 @@ static void keyboard(const unsigned char key, const int x, const int y)
 				if(g_rigidBodies[0].children[0]->material >= g_numShaders) {
                 g_rigidBodies[0].children[0]->material = 0;
             }
-				cout << "Current material: " << g_rigidBodies[0].children[0]->material << endl;
+				//cout << "Current material: " << g_rigidBodies[0].children[0]->material << endl;
 				break;
         break;
 	  }
@@ -795,6 +802,7 @@ static void initGeometry()
 {
 	//Initialize Object Matrix array
 	initDie();
+	//initBackground();
 	//initGround();
 }
 /*-----------------------------------------------*/

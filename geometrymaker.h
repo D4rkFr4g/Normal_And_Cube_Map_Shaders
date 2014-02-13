@@ -342,8 +342,7 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 
 	//Setup tu, tv
 	float textures[][2] = {{0.5,1},{1,0},{0.5,1},{0,0},{0,0},{0,0},{1,0},{0.5,1},{1,0},{0.5,1},{0,0},{1,0},{1,0},{0,0},{0.5,1},{0,0},{0.5,1},{0,0},{1,0}};
- //float textures[][2] = {{  0  },{ 1 },{  2  },{ 3 },{ 4 },{ 5 },{ 6 },{  7  },{ 8 },{  9  },{ 10},{ 11},{ 12},{ 13},{  14 },{ 15},{  16 },{ 17},{ 18}};
-
+ 
 	//Load all points into vtxIter
 	for (int i = 0; i < 19; i++)
 	{
@@ -389,6 +388,73 @@ void makeIcosahedron(VtxOutIter vtxIter, IdxOutIter idxIter)
 					 };
 
 	for (int i = 0; i < 60; i++)
+	{
+		idxIter[i] = temp[i];
+	}
+}
+
+template<typename VtxOutIter, typename IdxOutIter>
+void makeCubeMap(VtxOutIter vtxIter, IdxOutIter idxIter) 
+{
+	using namespace std;
+	
+	float edgeLength = 1.0;
+	float halfEdge = edgeLength / 2.0;
+	Cvec3f *points = new Cvec3f[14];
+
+	points[0] = Cvec3f(-halfEdge, halfEdge, -halfEdge); //Back TL
+	points[1] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); //Back BL
+	points[2] = Cvec3f(-halfEdge, -halfEdge, halfEdge); //Front BL 
+	points[3] = Cvec3f(-halfEdge, halfEdge, halfEdge); //Front TL
+	points[4] = Cvec3f(halfEdge, halfEdge, halfEdge); //Front TR
+	points[5] = Cvec3f(halfEdge, -halfEdge, halfEdge); //Front BR
+	points[6] = Cvec3f(halfEdge, halfEdge, -halfEdge); //Back TR
+	points[7] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); //Back BR
+	points[8] = Cvec3f(-halfEdge, halfEdge, -halfEdge); // [0]
+	points[9] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [1]
+	points[10] = Cvec3f(-halfEdge, halfEdge, -halfEdge); // [0]
+	points[11] = Cvec3f(halfEdge, halfEdge, -halfEdge); // [6]
+	points[12] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [1]
+	points[13] = Cvec3f(-halfEdge, -halfEdge, -halfEdge); // [7]
+	
+	float textures[][2] = {{0,.66},{0,0.33},{.25,.33},{.25,.66},{.5,.66},{.5,.33},{.75,.66},{.75,.33},{1,.66},{1,.33},{.25,1},{.5,1},{.25,0},{.5,0}};
+
+	//Load all points into vtxIter
+	for (int i = 0; i < 14; i++)
+	{
+		float x = points[i][0];
+		float y = points[i][1];
+		float z = points[i][2];
+
+		Cvec3f n(x, y, z);
+		Cvec3f t(-x, y, 0);
+		Cvec3f b = cross(n, t);
+
+		*vtxIter = GenericVertex(
+			x, y, z,
+			n[0], n[1], n[2],
+			textures[i][0], textures[i][1],
+			t[0], t[1], t[2],
+			b[0], b[1], b[2]);
+		++vtxIter;
+	}
+
+
+	int temp[] = {	0,1,3,
+						3,1,2,
+						3,2,4,
+						4,2,5,
+						4,5,6,
+						6,5,7,
+						6,7,8,
+						8,7,9,
+						10,3,11,
+						11,3,4,
+						2,12,5,
+						5,12,13
+					 };
+
+	for (int i = 0; i < 36; i++)
 	{
 		idxIter[i] = temp[i];
 	}

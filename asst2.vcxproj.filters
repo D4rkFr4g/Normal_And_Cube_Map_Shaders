@@ -87,6 +87,9 @@
     <None Include="two.ppm">
       <Filter>Images</Filter>
     </None>
+    <None Include="cubemap.ppm">
+      <Filter>Images</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
